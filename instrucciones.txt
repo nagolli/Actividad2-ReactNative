@@ -1,0 +1,22 @@
+OPCIÓN 1: MINI JUEGO: BUSCAMINAS
+Se creará un minijuego en el que se utilice Expo Router para tener tres interfaces usando Tabs y Stack:
+
+En una interfaz tendremos la pantalla de juego
+En una segunda, pantalla de juego nuevo, que permitan modificar las opciones del juego (Numero de filas, columnas y bombas). Tendrá opciones de facil, intermedio y dificil pudiendo modificar los valores.
+Una tercera con los datos del perfil del usuario que también puedan ser modificables: Nombre, partidas (Victoria/derrota, configuracion y tiempos)
+
+Al modificar los datos del perfil o de las opciones, datos que se almacenarán en sqlite, en la interfaz principal se verá afectada.
+
+REQUISITOS
+
+Se debe usar Expo Router con Stack y Tabs
+Se deben crear al menos tres interfaces
+Se debe crear al menos un componente reutilizable en al menos dos interfaces (no es StyleSheet)
+Se debe crear un hook personalizado
+Se debe utilizar SqLite
+
+REQUISITOS DE CALIDAD
+El nombre de las variables será significativo, tanto en los identificadores de componentes como en los objetos y variables, intentando utilizar nopmbrado camelCase.
+El nombre de los Componentes/Widgets será significativo y seguirá las pautas marcadas en los ejemplos de la asignatura
+Se introducirá comentarios significativos, en aquellas funciones o clases para describir su funcionamiento
+Se modularizará y crearán funciones para hacer más legible y reutilizable el código
