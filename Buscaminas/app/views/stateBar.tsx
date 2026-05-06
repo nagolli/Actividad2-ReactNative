@@ -4,6 +4,13 @@ import { useChrono } from '@/hooks/useChrono';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+/**
+ * Props para el componente StateBar que muestra el estado del juego.
+ * @property initTime - Momento en que se inició el juego
+ * @property bombsLeft - Número de bombas aún no marcadas
+ * @property endTime - Momento en que terminó el juego (null si sigue activo)
+ * @property onEndGame - Callback para terminar el juego manualmente
+ */
 export interface StateBarProps {
     initTime: Date;
     bombsLeft: number;
@@ -11,6 +18,15 @@ export interface StateBarProps {
     onEndGame: (won: boolean) => void;
 }
 
+/**
+ * Componente que muestra la barra de estado del juego.
+ * Presenta tres secciones: bombas restantes, tiempo transcurrido y botón para rendirse.
+ * 
+ * @param initTime - Fecha y hora de inicio del juego
+ * @param endTime - Fecha y hora de finalización del juego (null si sigue activo)
+ * @param bombsLeft - Número de bombas que aún no han sido marcadas
+ * @param onEndGame - Función callback que recibe si el jugador ganó o perdió
+ */
 export default function StateBar({ initTime, endTime, bombsLeft, onEndGame }: StateBarProps) {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
@@ -71,9 +87,10 @@ const TimeCounter = ({ initTime, endTime, theme }: { initTime: Date, endTime: Da
     </View>
 }
 
-/**
- * Componente que muestra el número de bombas restantes por marcar.
- * @param bombsLeft - Número de bombas que aún no han sido marcadas.
+/**Actualiza dinámicamente conforme el jugador marca o desmarca casillas.
+ * 
+ * @param bombsLeft - Número de bombas que aún no han sido marcadas
+ * @param theme - Objeto con colores del tema actual (light/dark)
  */
 const BombsLeft = ({ bombsLeft, theme }: { bombsLeft: number; theme: any }) => {
     return <View style={styles.item}>

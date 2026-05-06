@@ -9,11 +9,13 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { navigateToView, Views } from './viewsEnum';
 
 /**
- * Botón personalizado para navegar a una tab específica.
- * @param icon - Nombre del ícono a mostrar.
- * @param label - Etiqueta del botón.
- * @param onPress - Función callback al presionar el botón.
- * @param color - Color del ícono.
+ * Componente reutilizable que renderiza un botón de pestaña personalizado.
+ * Proporciona feedback táctil al presionar y muestra un ícono con color dinámico.
+ * 
+ * @param icon - Nombre del ícono a mostrar (debe ser un nombre válido de IconSymbol)
+ * @param label - Etiqueta descriptiva del botón (accesibilidad)
+ * @param onPress - Función callback que se ejecuta al presionar el botón
+ * @param color - Color del ícono
  */
 const TabButton = ({ icon, label, onPress, color }: { icon: string; label: string; onPress: () => void; color: string }) => {
   return (
@@ -26,6 +28,13 @@ const TabButton = ({ icon, label, onPress, color }: { icon: string; label: strin
   );
 };
 
+/**
+ * Layout de navegación por pestañas (Tabs) de la aplicación.
+ * Proporciona tres pestañas principales:
+ * 1. Inicio: Selección de modo y configuración del juego
+ * 2. Juego: Pantalla principal de juego
+ * 3. Perfil: Gestión de perfiles y estadísticas
+ */
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
