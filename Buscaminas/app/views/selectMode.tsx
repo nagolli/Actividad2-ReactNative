@@ -1,8 +1,7 @@
-
 export interface SelectModeProps {
 
 }
 
-export const SelectMode = ({ }: SelectModeProps) => {
+export default function SelectMode({ }: SelectModeProps) {
     return <></>
 }

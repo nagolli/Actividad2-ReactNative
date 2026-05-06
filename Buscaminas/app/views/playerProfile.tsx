@@ -1,8 +1,7 @@
-
 export interface PlayerProfileProps {
 
 }
 
-export const PlayerProfile = ({ }: PlayerProfileProps) => {
+export default function PlayerProfile({ }: PlayerProfileProps) {
     return <></>
 }

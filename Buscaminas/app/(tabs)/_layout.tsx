@@ -1,35 +1,104 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
+import { Pressable, StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { navigateToView, Views } from './viewsEnum';
+
+/**
+ * Botón personalizado para navegar a una tab específica.
+ * @param icon - Nombre del ícono a mostrar.
+ * @param label - Etiqueta del botón.
+ * @param onPress - Función callback al presionar el botón.
+ * @param color - Color del ícono.
+ */
+const TabButton = ({ icon, label, onPress, color }: { icon: string; label: string; onPress: () => void; color: string }) => {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={styles.tabButton}
+    >
+      <IconSymbol size={28} name={icon as any} color={color} />
+    </Pressable>
+  );
+};
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
+  const tintColor = Colors[colorScheme ?? 'light'].tint;
 
   return (
     <Tabs
+      initialRouteName="init"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: tintColor,
         headerShown: false,
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
-        name="index"
+        name="init"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Inicio',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="wrench.fill" color={color} />,
+          tabBarButton: (props) => (
+            <TabButton
+              icon="wrench.fill"
+              label="Inicio"
+              onPress={() => {
+                navigateToView(Views.Init);
+              }
+              }
+              color={tintColor}
+            />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="game"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Juego',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="play.fill" color={color} />,
+          tabBarButton: (props) => (
+            <TabButton
+              icon="play.fill"
+              label="Juego"
+              onPress={() => {
+                navigateToView(Views.Game);
+              }}
+              color={tintColor}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          tabBarButton: (props) => (
+            <TabButton
+              icon="person.fill"
+              label="Perfil"
+              onPress={() => {
+                navigateToView(Views.Profile);
+              }}
+              color={tintColor}
+            />
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
-import { MineArea } from "./mineArea"
-import { StateBar } from "./stateBar"
+import StateBar from "./stateBar"
+import MineArea from "./mineArea"
+import { navigateToView, Views } from "../(tabs)/viewsEnum"
 
 export interface GameViewProps {
     bombs: number
@@ -8,35 +9,18 @@ export interface GameViewProps {
     rows: number
 }
 
-export const GameView = ({ bombs, columns, rows }: GameViewProps) => {
+export default function GameView({ bombs, columns, rows }: GameViewProps) {
     const [initTime] = useState(new Date())
     const [bombsLeft, setBombsLeft] = useState(bombs)
     const [endTime, setEndTime] = useState<Date | null>(null)
 
-    useEffect(() => {
-        if (bombsLeft === 0) {
-            onWin()
-        }
-    }, [bombsLeft])
-
-    /**
-     * Función que se ejecuta cuando el jugador gana el juego.
-     * Marca el tiempo final y llama a onEndGame con resultado de victoria.
-     */
-    const onWin = () => {
-        onEndGame(true)
-    }
-
     /**
      * Función que se ejecuta cuando el jugador pisa una bomba y pierde.
      * Establece el tiempo final, revela el tablero y deshabilita interacciones,
-     * pero no llama inmediatamente a onEndGame para permitir al usuario ver el tablero.
      */
     const onDie = () => {
         setEndTime(new Date());
-        //Revelar el tablero, inhabilitar interaccion
-
-        //No llamar a onEndGame, permitir al usuario ver el tablero antes de volver al menu principal
+        //No llamar a onEndGame directamente, permitir al usuario ver el tablero antes de volver al menu principal
     }
 
     /**
@@ -52,12 +36,13 @@ export const GameView = ({ bombs, columns, rows }: GameViewProps) => {
         console.log(`Juego terminado. Ganado: ${won}, Tiempo total: ${totalTime} segundos`)
 
         //Volver al menu principal
+        navigateToView(Views.Profile);
 
     }
 
     return <>
-        <StateBar initTime={initTime} bombsLeft={bombsLeft} onEndGame={onEndGame} />
-        <MineArea initData={{ bombs, columns, rows }} setBombsLeft={setBombsLeft} onDie={onDie} ended={!!endTime} />
+        <StateBar initTime={initTime} endTime={endTime} bombsLeft={bombsLeft} onEndGame={onEndGame} />
+        <MineArea initData={{ bombs, columns, rows }} setBombsLeft={setBombsLeft} onDie={onDie} onWin={() => onEndGame(true)} ended={!!endTime} />
     </>
 }
 
