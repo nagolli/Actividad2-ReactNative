@@ -59,7 +59,7 @@ export const initDatabase = () => {
         bombs INTEGER NOT NULL,
         columns INTEGER NOT NULL,
         rows INTEGER NOT NULL,
-        result TEXT NOT NULL,
+        result INTEGER NOT NULL,
         played_at TEXT NOT NULL DEFAULT (datetime('now')),
         time INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE
@@ -172,7 +172,7 @@ export interface GameRecord {
   bombs: number;
   columns: number;
   rows: number;
-  result: string;
+  result: number;
   played_at: string;
   time: number;
 }
@@ -196,9 +196,9 @@ export const getGamesByProfile = (profileId: number): GameRecord[] => {
  * @param game - Objeto con los datos de la partida a guardar
  * @param game.profileId - ID del perfil que jugó
  * @param game.bombs - Número de bombas en la partida
- * @param game.columns - Número de 'win' o 'lose')
+ * @param game.columns - Número de columnas del tablero
  * @param game.rows - Número de filas del tablero
- * @param game.result - Resultado de la partida ('win' o 'lose')
+ * @param game.result - Resultado de la partida (0 o 1)
  * @param game.time - Tiempo que duró la partida en segundos
  * @param game.playedAt - Fecha de juego (opcional, por defecto es la actual)
  * @returns Promise que se resuelve cuando la partida se guarda exitosamente
@@ -209,7 +209,7 @@ export const insertGame = (game: {
   bombs: number;
   columns: number;
   rows: number;
-  result: string;
+  result: number;
   time: number;
   playedAt?: string;
 }) => {

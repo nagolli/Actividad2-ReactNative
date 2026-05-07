@@ -12,15 +12,7 @@ import { useEffect, useState } from "react";
  * aunque el valor sea limitado a dos opciones.
  * 
  * @param delay - Intervalo en segundos entre cambios del contador
- * @returns Valor del contador (0 o 1) que cambia cada `delay` segundos
  * 
- * @example
- * // Actualizar cada segundo (1000 ms)
- * const counter = useChrono(1);
- * 
- * @example
- * // Actualizar cada 2 segundos
- * const counter = useChrono(2);
  */
 export const useChrono = (delay: number) => {
     const [counter, setCounter] = useState(0);
@@ -30,5 +22,4 @@ export const useChrono = (delay: number) => {
         }, delay * 1000);
         return () => clearInterval(interval);
     }, [delay]);
-    return counter;
 }
