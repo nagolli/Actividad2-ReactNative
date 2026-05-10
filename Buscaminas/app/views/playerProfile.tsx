@@ -1,8 +1,4 @@
-export interface PlayerProfileProps {
-
-}
-
-export default function PlayerProfile({ }: PlayerProfileProps) {
+export default function PlayerProfile() {
     // TODO: Implementar botón para ir a nueva partida (navigateToView(Views.SelectMode))
 
     // TODO: Implementar desplegable con cada perfil guardado (con nombre), el seleccionado se marca como activo en BBDD y se muestra su historial de partidas

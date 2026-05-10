@@ -22,4 +22,6 @@ export const useChrono = (delay: number) => {
         }, delay * 1000);
         return () => clearInterval(interval);
     }, [delay]);
+
+    return counter;
 }

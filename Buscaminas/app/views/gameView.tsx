@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react"
-import StateBar from "./stateBar"
-import MineArea from "./mineArea"
-import { navigateToView, Views } from "../(tabs)/viewsEnum"
 import { getActiveProfile, insertGame } from "@/db/database"
+import { useState } from "react"
+import { navigateToView, Views } from "../(tabs)/viewsEnum"
+import MineArea from "./mineArea"
+import StateBar from "./stateBar"
 
 /**
  * Props para el componente GameView que gestiona la lógica principal del juego.

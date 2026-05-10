@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import GameView from '../views/gameView';
 import { getGameSettings } from '@/db/database';
+import { UnmountOnBlur } from '../hooks/unmountOnBlur';
+import GameView from '../views/gameView';
 import Loading from '../views/loading';
-import { UnmountOnBlur } from '../hooks/UnmountOnBlur';
 
 /**
  * Componente interno que carga y renderiza la pantalla del juego.

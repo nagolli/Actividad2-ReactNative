@@ -1,39 +1,12 @@
 import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabaseSync('buscaminas.db');
+let schemaInitialized = false;
 
-/**
- * Normaliza los resultados de una consulta SQL transformándolos en un array.
- * Maneja diferentes formatos de respuesta según la versión de expo-sqlite.
- * @template T - Tipo genérico para tipado de los resultados
- * @param result - Resultado bruto de la consulta SQL
- * @returns Array tipado con los registros de la consulta
- */
-const normalizeRows = <T>(result: any): T[] => {
-  if (!result || result.length === 0) return [];
-  const rows = result[0].rows;
-  if (!rows) return [];
-  return Array.isArray(rows._array) ? rows._array as T[] : rows as T[];
-};
+const ensureSchema = () => {
+  if (schemaInitialized) return;
 
-/**
- * Inicializa la base de datos creando las tablas necesarias para el juego.
- * Crea tres tablas: settings (configuración del juego), profiles (perfiles de usuario) 
- * y games (registro de partidas jugadas).
- * Esta función se debe llamar una sola vez al inicio de la aplicación.
- */
-export const initDatabase = () => {
   db.withTransactionSync(() => {
-    /*
-    db.execSync(
-      `Drop TABLE IF EXISTS settings;`
-    );
-    db.execSync(
-      `Drop TABLE IF EXISTS games;`
-    );
-    db.execSync(
-      `Drop TABLE IF EXISTS profiles;`
-    );*/
     db.execSync(
       `CREATE TABLE IF NOT EXISTS settings (
         id INTEGER PRIMARY KEY NOT NULL,
@@ -66,6 +39,32 @@ export const initDatabase = () => {
       );`
     );
   });
+
+  schemaInitialized = true;
+};
+
+/**
+ * Normaliza los resultados de una consulta SQL transformándolos en un array.
+ * Maneja diferentes formatos de respuesta según la versión de expo-sqlite.
+ * @template T - Tipo genérico para tipado de los resultados
+ * @param result - Resultado bruto de la consulta SQL
+ * @returns Array tipado con los registros de la consulta
+ */
+const normalizeRows = <T>(result: any): T[] => {
+  if (!result || result.length === 0) return [];
+  const rows = result[0].rows;
+  if (!rows) return [];
+  return Array.isArray(rows._array) ? rows._array as T[] : rows as T[];
+};
+
+/**
+ * Inicializa la base de datos creando las tablas necesarias para el juego.
+ * Crea tres tablas: settings (configuración del juego), profiles (perfiles de usuario) 
+ * y games (registro de partidas jugadas).
+ * Esta función se debe llamar una sola vez al inicio de la aplicación.
+ */
+export const initDatabase = () => {
+  ensureSchema();
   // Insertar configuración por defecto si no existe
   if (!getGameSettings()) {
     saveGameSettings({ bombs: 10, columns: 9, rows: 9 }); // Valores por defecto
@@ -89,6 +88,7 @@ export const initDatabase = () => {
 export const saveGameSettings = (settings: { bombs: number; columns: number; rows: number }) => {
   return new Promise<void>((resolve, reject) => {
     try {
+      ensureSchema();
       db.withTransactionSync(() => {
         db.execSync(
           `INSERT OR REPLACE INTO settings (id, bombs, columns, rows) VALUES (1, ${settings.bombs}, ${settings.columns}, ${settings.rows});`
@@ -104,6 +104,7 @@ export const saveGameSettings = (settings: { bombs: number; columns: number; row
 
 // Carga settings
 export const getGameSettings = (): { bombs: number; columns: number; rows: number } | null => {
+  ensureSchema();
   return db.getFirstSync<{ bombs: number; columns: number; rows: number }>(
     'SELECT bombs, columns, rows FROM settings WHERE id = 1;'
   );
@@ -127,6 +128,7 @@ export interface Profile {
  * @returns Array de perfiles disponibles
  */
 export const getAllProfiles = (): Profile[] => {
+  ensureSchema();
   return normalizeRows<Profile>(db.execSync(
     'SELECT id, name, created_at, activo FROM profiles ORDER BY name ASC;'
   ));
@@ -141,6 +143,7 @@ export const getAllProfiles = (): Profile[] => {
 export const insertProfile = (profileName: string, active: boolean = false) => {
   return new Promise<void>((resolve, reject) => {
     try {
+      ensureSchema();
       db.withTransactionSync(() => {
         const safeProfileName = profileName.replace(/'/g, "''");
         db.execSync(
@@ -183,6 +186,7 @@ export interface GameRecord {
  * @returns Array con el historial de partidas del perfil
  */
 export const getGamesByProfile = (profileId: number): GameRecord[] => {
+  ensureSchema();
   return normalizeRows<GameRecord>(db.execSync(
     `SELECT id, profile_id, bombs, columns, rows, result, played_at
      FROM games
@@ -215,6 +219,7 @@ export const insertGame = (game: {
 }) => {
   return new Promise<void>((resolve, reject) => {
     try {
+      ensureSchema();
       db.withTransactionSync(() => {
         db.execSync(
           `INSERT INTO games (profile_id, bombs, columns, rows, result, played_at, time)
@@ -234,6 +239,7 @@ export const insertGame = (game: {
  * @returns El perfil activo o null si no hay ninguno activo
  */
 export const getActiveProfile = (): Profile | null => {
+  ensureSchema();
   return db.getFirstSync<Profile>(
     'SELECT id, name, created_at, activo FROM profiles WHERE activo = 1 LIMIT 1;'
   );
@@ -248,6 +254,7 @@ export const getActiveProfile = (): Profile | null => {
 export const setCurrentProfile = (profileId: number) => {
   return new Promise<void>((resolve, reject) => {
     try {
+      ensureSchema();
       db.withTransactionSync(() => {
         // Primero desactivar todos los perfiles
         db.execSync('UPDATE profiles SET activo = 0;');

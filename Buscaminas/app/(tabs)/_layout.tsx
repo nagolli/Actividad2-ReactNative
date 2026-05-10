@@ -1,4 +1,4 @@
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
@@ -37,7 +37,6 @@ const TabButton = ({ icon, label, onPress, color }: { icon: string; label: strin
  */
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const router = useRouter();
   const tintColor = Colors[colorScheme ?? 'light'].tint;
 
   return (
