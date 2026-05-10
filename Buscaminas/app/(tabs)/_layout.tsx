@@ -6,7 +6,7 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { navigateToView, Views } from './viewsEnum';
+import { navigateToView, Views } from '@/utils/viewsEnum';
 
 /**
  * Componente reutilizable que renderiza un botón de pestaña personalizado.

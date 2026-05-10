@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { getGameSettings } from '@/db/database';
-import { UnmountOnBlur } from '../hooks/unmountOnBlur';
+import { UnmountOnBlur } from '@/hooks/unmountOnBlur';
 import GameView from '../views/gameView';
 import Loading from '../views/loading';
 

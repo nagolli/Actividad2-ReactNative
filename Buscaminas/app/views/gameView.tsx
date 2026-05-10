@@ -1,6 +1,6 @@
 import { getActiveProfile, insertGame } from "@/db/database"
+import { navigateToView, Views } from "@/utils/viewsEnum"
 import { useState } from "react"
-import { navigateToView, Views } from "../(tabs)/viewsEnum"
 import MineArea from "./mineArea"
 import StateBar from "./stateBar"
 

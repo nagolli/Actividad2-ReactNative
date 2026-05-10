@@ -1,8 +1,8 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useChrono } from '@/hooks/useChrono';
 import React from 'react';
 import { Button, StyleSheet, Text, View } from 'react-native';
-import { useChrono } from '../hooks/useChrono';
 
 /**
  * Props para el componente StateBar que muestra el estado del juego.

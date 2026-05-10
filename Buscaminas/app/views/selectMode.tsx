@@ -1,7 +1,7 @@
+import { getGameSettings, saveGameSettings } from '@/db/database';
+import { navigateToView, Views } from '@/utils/viewsEnum';
 import { useEffect, useState } from 'react';
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
-import { getGameSettings, saveGameSettings } from '@/db/database';
-import { navigateToView, Views } from '../(tabs)/viewsEnum';
 import Loading from './loading';
 
 /**
