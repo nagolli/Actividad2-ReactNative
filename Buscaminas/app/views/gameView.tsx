@@ -1,10 +1,8 @@
 import ActionModal from "@/components/ui/action-modal"
-import { Colors } from "@/constants/theme"
+import ScreenContainer from "@/components/ui/screen-container"
 import { getActiveProfile, insertGame, setGameInProgress } from "@/db/database"
-import { useColorScheme } from "@/hooks/use-color-scheme"
 import { navigateToView, Views } from "@/utils/viewsEnum"
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs"
-import { LinearGradient } from "expo-linear-gradient"
 import { useEffect, useState } from "react"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import MineArea from "./mineArea"
@@ -32,8 +30,6 @@ export interface GameViewProps {
 */
 
 export default function GameView({ bombs, columns, rows }: GameViewProps) {
-    const colorScheme = useColorScheme()
-    const palette = Colors[colorScheme ?? 'light']
     const insets = useSafeAreaInsets()
     const tabBarHeight = useBottomTabBarHeight()
     const [initTime, setInitTime] = useState(new Date())
@@ -120,9 +116,7 @@ export default function GameView({ bombs, columns, rows }: GameViewProps) {
     }
 
     return <>
-        <LinearGradient
-            colors={colorScheme === 'dark' ? [palette.background, palette.backgroundSoft] : ['#f4f7f9', '#e0ebf0']}
-            style={{ flex: 1, paddingTop: Math.max(insets.top, 10) }}>
+        <ScreenContainer contentContainerStyle={{ flex: 1, paddingTop: Math.max(insets.top, 10) }} lightEndColor="#e0ebf0">
             <StateBar initTime={initTime} endTime={endTime} bombsLeft={bombsLeft} onEndGame={onEndGame} onRequestSurrender={onRequestSurrender} onRestart={startNewRound} />
             <MineArea
                 key={roundKey}
@@ -133,7 +127,7 @@ export default function GameView({ bombs, columns, rows }: GameViewProps) {
                 ended={!!endTime}
                 bottomReservedSpace={tabBarHeight + 12}
             />
-        </LinearGradient>
+        </ScreenContainer>
 
         <ActionModal
             visible={showEndModal}

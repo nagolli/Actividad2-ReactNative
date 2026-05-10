@@ -1,9 +1,9 @@
 import AppButton from '@/components/ui/app-button';
+import ScreenContainer from '@/components/ui/screen-container';
 import SurfaceCard from '@/components/ui/surface-card';
 import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { navigateToView, Views } from '@/utils/viewsEnum';
-import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function PlayerProfile() {
@@ -18,9 +18,7 @@ export default function PlayerProfile() {
     const colorScheme = useColorScheme();
     const palette = Colors[colorScheme ?? 'light'];
 
-    return <LinearGradient
-        colors={colorScheme === 'dark' ? [palette.background, palette.backgroundSoft] : [palette.background, '#e0ebf1']}
-        style={styles.gradient}>
+    return <ScreenContainer contentContainerStyle={styles.gradient} lightEndColor="#e0ebf1">
         <SurfaceCard style={styles.container}>
             <Text style={[styles.title, { color: palette.text }]}>Perfil</Text>
             <Text style={[styles.description, { color: palette.textMuted }]}>Esta sección estará disponible pronto con gestión completa de perfiles e historial.</Text>
@@ -31,7 +29,7 @@ export default function PlayerProfile() {
 
             <AppButton label="Configurar nueva partida" onPress={() => navigateToView(Views.Init)} variant="accent" style={styles.button} />
         </SurfaceCard>
-    </LinearGradient>
+    </ScreenContainer>
 }
 
 const styles = StyleSheet.create({

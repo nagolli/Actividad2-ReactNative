@@ -1,13 +1,13 @@
 import ActionModal from '@/components/ui/action-modal';
 import AppButton from '@/components/ui/app-button';
+import ScreenContainer from '@/components/ui/screen-container';
 import SurfaceCard from '@/components/ui/surface-card';
 import { Colors, Fonts } from '@/constants/theme';
 import { getGameSettings, isGameInProgress, saveGameSettings } from '@/db/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { navigateToView, Views } from '@/utils/viewsEnum';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Loading from './loading';
 
 /**
@@ -167,10 +167,8 @@ export default function SelectMode() {
     }
 
     return (
-        <LinearGradient
-            colors={colorScheme === 'dark' ? ['#0d1318', '#121d24'] : ['#f4f7f9', '#deeaee']}
-            style={styles.gradient}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+        <>
+            <ScreenContainer scroll contentContainerStyle={styles.scrollContent} lightEndColor="#deeaee">
                 <SurfaceCard style={styles.card}>
                     <Text style={[styles.title, { color: palette.text }]}>Selecciona modo</Text>
                     <Text style={[styles.subtitle, { color: palette.textMuted }]}>Configura dificultad o crea tu propia partida</Text>
@@ -182,7 +180,7 @@ export default function SelectMode() {
                     <FieldRow label="Columnas" value={columns} onChange={setColumns} palette={palette} />
                     <StartButtonRow onPress={startGame} palette={palette} />
                 </SurfaceCard>
-            </ScrollView>
+            </ScreenContainer>
 
             <ActionModal
                 visible={showNewGameConfirmModal}
@@ -203,7 +201,7 @@ export default function SelectMode() {
                 }}
                 primaryVariant="danger"
             />
-        </LinearGradient>
+        </>
     );
 }
 
@@ -215,9 +213,6 @@ function ProfileButtonRow({ onPress, palette }: { onPress: () => void; palette: 
 
 
 const styles = StyleSheet.create({
-    gradient: {
-        flex: 1,
-    },
     scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',

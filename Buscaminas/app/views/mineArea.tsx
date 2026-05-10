@@ -1,146 +1,15 @@
 
 import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Cell, cloneBoard, countFlags, createBoard, hasWonByAnyRule, normalizeBombCount, revealConnectedArea } from '@/utils/mine-logic';
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-
-type Cell = {
-    hasBomb: boolean;
-    revealed: boolean;
-    flagged: boolean;
-    neighborBombs: number;
-};
 
 const MIN_CELL_SIZE = 18;
 const MAX_CELL_SIZE = 40;
 const FLAG_SYMBOL = '⚑';
 const BOMB_SYMBOL = '✹';
 
-const createBoard = (rows: number, columns: number, bombs: number): Cell[][] => {
-    const board: Cell[][] = Array.from({ length: rows }, () =>
-        Array.from({ length: columns }, () => ({
-            hasBomb: false,
-            revealed: false,
-            flagged: false,
-            neighborBombs: 0,
-        }))
-    );
-
-    const totalCells = rows * columns;
-    const bombCount = Math.max(1, Math.min(bombs, totalCells - 1));
-    const bombIndexes = new Set<number>();
-
-    while (bombIndexes.size < bombCount) {
-        bombIndexes.add(Math.floor(Math.random() * totalCells));
-    }
-
-    for (const index of bombIndexes) {
-        const row = Math.floor(index / columns);
-        const col = index % columns;
-        board[row][col].hasBomb = true;
-    }
-
-    for (let row = 0; row < rows; row += 1) {
-        for (let col = 0; col < columns; col += 1) {
-            if (board[row][col].hasBomb) continue;
-
-            let nearbyBombs = 0;
-            for (let r = row - 1; r <= row + 1; r += 1) {
-                for (let c = col - 1; c <= col + 1; c += 1) {
-                    if (r === row && c === col) continue;
-                    if (r < 0 || c < 0 || r >= rows || c >= columns) continue;
-                    if (board[r][c].hasBomb) nearbyBombs += 1;
-                }
-            }
-            board[row][col].neighborBombs = nearbyBombs;
-        }
-    }
-
-    return board;
-};
-
-const cloneBoard = (board: Cell[][]): Cell[][] => board.map((row) => row.map((cell) => ({ ...cell })));
-
-const revealConnectedArea = (board: Cell[][], startRow: number, startCol: number) => {
-    const rows = board.length;
-    const columns = board[0].length;
-    const queue: [number, number][] = [[startRow, startCol]];
-
-    while (queue.length > 0) {
-        const next = queue.shift();
-        if (!next) break;
-
-        const [row, col] = next;
-        const cell = board[row][col];
-
-        if (cell.revealed || cell.flagged) continue;
-        cell.revealed = true;
-
-        if (cell.neighborBombs !== 0) continue;
-
-        for (let r = row - 1; r <= row + 1; r += 1) {
-            for (let c = col - 1; c <= col + 1; c += 1) {
-                if (r === row && c === col) continue;
-                if (r < 0 || c < 0 || r >= rows || c >= columns) continue;
-
-                const neighbor = board[r][c];
-                if (!neighbor.revealed && !neighbor.hasBomb && !neighbor.flagged) {
-                    queue.push([r, c]);
-                }
-            }
-        }
-    }
-};
-
-const hasWon = (board: Cell[][]) => {
-    for (const row of board) {
-        for (const cell of row) {
-            if (!cell.hasBomb && !cell.revealed) {
-                return false;
-            }
-        }
-    }
-    return true;
-};
-
-const countFlags = (board: Cell[][]) => {
-    let total = 0;
-    for (const row of board) {
-        for (const cell of row) {
-            if (cell.flagged) total += 1;
-        }
-    }
-    return total;
-};
-
-const countHiddenCells = (board: Cell[][]) => {
-    let total = 0;
-    for (const row of board) {
-        for (const cell of row) {
-            if (!cell.revealed) total += 1;
-        }
-    }
-    return total;
-};
-
-const hasWonByHiddenBombs = (board: Cell[][], totalBombs: number) =>
-    countHiddenCells(board) === totalBombs;
-
-const hasWonByCorrectFlags = (board: Cell[][], totalBombs: number) => {
-    if (countFlags(board) !== totalBombs) {
-        return false;
-    }
-
-    for (const row of board) {
-        for (const cell of row) {
-            if (cell.flagged && !cell.hasBomb) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-};
 
 /**
  * Props para el componente MineArea que renderiza el tablero de juego.
@@ -208,8 +77,7 @@ export default function MineArea({ initData, setBombsLeft, onDie, onWin, ended, 
     const [exploded, setExploded] = useState(false);
 
     const totalBombs = useMemo(() => {
-        const cells = initData.rows * initData.columns;
-        return Math.max(1, Math.min(initData.bombs, cells - 1));
+        return normalizeBombCount(initData.rows, initData.columns, initData.bombs);
     }, [initData.bombs, initData.columns, initData.rows]);
 
     const [board, setBoard] = useState<Cell[][]>(() =>
@@ -265,11 +133,7 @@ export default function MineArea({ initData, setBombsLeft, onDie, onWin, ended, 
         revealConnectedArea(nextBoard, row, col);
         setBoard(nextBoard);
 
-        if (
-            hasWon(nextBoard) ||
-            hasWonByHiddenBombs(nextBoard, totalBombs) ||
-            hasWonByCorrectFlags(nextBoard, totalBombs)
-        ) {
+        if (hasWonByAnyRule(nextBoard, totalBombs)) {
             onWin();
         }
     };
@@ -287,10 +151,7 @@ export default function MineArea({ initData, setBombsLeft, onDie, onWin, ended, 
         const flags = countFlags(nextBoard);
         setBombsLeft(totalBombs - flags);
 
-        if (
-            hasWonByHiddenBombs(nextBoard, totalBombs) ||
-            hasWonByCorrectFlags(nextBoard, totalBombs)
-        ) {
+        if (hasWonByAnyRule(nextBoard, totalBombs)) {
             onWin();
         }
     };

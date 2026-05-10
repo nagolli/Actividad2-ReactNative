@@ -4,6 +4,8 @@ import { useChrono } from '@/hooks/useChrono';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+type AppTheme = typeof Colors.light;
+
 /**
  * Props para el componente StateBar que muestra el estado del juego.
  * @property initTime - Momento en que se inició el juego
@@ -97,7 +99,7 @@ const styles = StyleSheet.create({
  * @param initTime - Fecha de inicio del juego.
  * @param endTime - Fecha de finalización del juego.
  */
-const TimeCounter = ({ initTime, endTime, theme }: { initTime: Date, endTime: Date | null, theme: any }) => {
+const TimeCounter = ({ initTime, endTime, theme }: { initTime: Date, endTime: Date | null, theme: AppTheme }) => {
     useChrono(1, !endTime);
     return <View style={styles.item}>
         <Text style={[styles.label, { color: theme.icon }]}>Tiempo</Text>
@@ -112,7 +114,7 @@ const TimeCounter = ({ initTime, endTime, theme }: { initTime: Date, endTime: Da
  * @param bombsLeft - Número de bombas que aún no han sido marcadas
  * @param theme - Objeto con colores del tema actual (light/dark)
  */
-const BombsLeft = ({ bombsLeft, theme }: { bombsLeft: number; theme: any }) => {
+const BombsLeft = ({ bombsLeft, theme }: { bombsLeft: number; theme: AppTheme }) => {
     return <View style={styles.item}>
         <Text style={[styles.label, { color: theme.icon }]}>Bombas</Text>
         <Text style={[styles.value, { color: theme.text }]}>{bombsLeft}</Text>
@@ -128,7 +130,7 @@ const EndGame = ({ onEndGame, onRequestSurrender, onRestart, isEnded, theme }: {
     onRequestSurrender?: () => void;
     onRestart?: () => void;
     isEnded: boolean;
-    theme: any;
+    theme: AppTheme;
 }) => {
     return <View style={styles.item}>
         <Text style={[styles.label, { color: theme.icon }]}>Juego</Text>

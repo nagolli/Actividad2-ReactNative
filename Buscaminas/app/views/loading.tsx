@@ -1,8 +1,8 @@
 
+import ScreenContainer from '@/components/ui/screen-container';
 import SurfaceCard from '@/components/ui/surface-card';
 import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, Text } from 'react-native';
 
 export default function Loading() {
@@ -10,9 +10,7 @@ export default function Loading() {
     const palette = Colors[colorScheme ?? 'light'];
 
     return (
-        <LinearGradient
-            colors={colorScheme === 'dark' ? [palette.background, palette.backgroundSoft] : [palette.background, '#dce8ee']}
-            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ScreenContainer contentContainerStyle={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} lightEndColor="#dce8ee">
             <SurfaceCard
                 style={{
                     paddingHorizontal: 24,
@@ -24,7 +22,7 @@ export default function Loading() {
                 <ActivityIndicator size="small" color={palette.tint} />
                 <Text style={{ color: palette.textMuted, fontFamily: Fonts?.sans }}>Cargando...</Text>
             </SurfaceCard>
-        </LinearGradient>
+        </ScreenContainer>
     );
 }
 
