@@ -1,7 +1,13 @@
-import { getGameSettings, saveGameSettings } from '@/db/database';
+import ActionModal from '@/components/ui/action-modal';
+import AppButton from '@/components/ui/app-button';
+import SurfaceCard from '@/components/ui/surface-card';
+import { Colors, Fonts } from '@/constants/theme';
+import { getGameSettings, isGameInProgress, saveGameSettings } from '@/db/database';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { navigateToView, Views } from '@/utils/viewsEnum';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Loading from './loading';
 
 /**
@@ -32,8 +38,10 @@ const presets: Record<string, GameSettings> = {
  */
 function PresetGroup({
     onApplyPreset,
+    palette,
 }: {
     onApplyPreset: (preset: GameSettings) => void;
+    palette: typeof Colors.light;
 }) {
     return (
         <View style={styles.presets}>
@@ -42,6 +50,7 @@ function PresetGroup({
                     key={label}
                     label={label}
                     onPress={() => onApplyPreset(preset)}
+                    palette={palette}
                 />
             ))}
         </View>
@@ -51,14 +60,16 @@ function PresetGroup({
 function PresetButton({
     label,
     onPress,
+    palette,
 }: {
     label: string;
     onPress: () => void;
+    palette: typeof Colors.light;
 }) {
     return (
-        <View style={styles.presetButton}>
-            <Button title={label} onPress={onPress} />
-        </View>
+        <Pressable style={[styles.presetButton, { backgroundColor: palette.surfaceAlt, borderColor: palette.border }]} onPress={onPress}>
+            <Text style={[styles.presetButtonText, { color: palette.text }]}>{label}</Text>
+        </Pressable>
     );
 }
 
@@ -66,39 +77,44 @@ function FieldRow({
     label,
     value,
     onChange,
+    palette,
 }: {
     label: string;
     value: string;
     onChange: (text: string) => void;
+    palette: typeof Colors.light;
 }) {
     return (
         <View style={styles.field}>
-            <Text style={styles.label}>{label}</Text>
+            <Text style={[styles.label, { color: palette.textMuted }]}>{label}</Text>
             <TextInput
-                style={styles.input}
+                style={[styles.input, { borderColor: palette.border, backgroundColor: palette.surface, color: palette.text }]}
                 keyboardType="numeric"
                 value={value}
                 onChangeText={onChange}
+                placeholderTextColor={palette.textMuted}
             />
         </View>
     );
 }
 
-function StartButtonRow({ onPress }: { onPress: () => void }) {
+function StartButtonRow({ onPress, palette }: { onPress: () => void; palette: typeof Colors.light }) {
     return (
-        <View style={styles.startButton}>
-            <Button title="Iniciar partida" onPress={onPress} />
-        </View>
+        <AppButton label="Iniciar partida" onPress={onPress} variant="accent" style={styles.primaryButton} />
     );
 }
 
 export default function SelectMode() {
+    const colorScheme = useColorScheme();
+    const palette = Colors[colorScheme ?? 'light'];
     const [gameSettings, setGameSettings] = useState<GameSettings | undefined>(
         undefined
     );
     const [bombs, setBombs] = useState('10');
     const [columns, setColumns] = useState('9');
     const [rows, setRows] = useState('9');
+    const [showNewGameConfirmModal, setShowNewGameConfirmModal] = useState(false);
+    const [pendingSettings, setPendingSettings] = useState<GameSettings | null>(null);
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -129,6 +145,19 @@ export default function SelectMode() {
             columns: Number(columns) || 9,
             rows: Number(rows) || 9,
         };
+
+        const settingsChanged =
+            !!gameSettings &&
+            (settings.bombs !== gameSettings.bombs ||
+                settings.columns !== gameSettings.columns ||
+                settings.rows !== gameSettings.rows);
+
+        if (isGameInProgress() && settingsChanged) {
+            setPendingSettings(settings);
+            setShowNewGameConfirmModal(true);
+            return;
+        }
+
         await saveGameSettings(settings);
         navigateToView(Views.Game);
     };
@@ -138,66 +167,126 @@ export default function SelectMode() {
     }
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Selecciona modo</Text>
-            <ProfileButtonRow onPress={goToProfile} />
-            <PresetGroup onApplyPreset={applyPreset} />
-            <FieldRow label="Bombas" value={bombs} onChange={setBombs} />
-            <FieldRow label="Filas" value={rows} onChange={setRows} />
-            <FieldRow label="Columnas" value={columns} onChange={setColumns} />
-            <StartButtonRow onPress={startGame} />
-        </View>
+        <LinearGradient
+            colors={colorScheme === 'dark' ? ['#0d1318', '#121d24'] : ['#f4f7f9', '#deeaee']}
+            style={styles.gradient}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <SurfaceCard style={styles.card}>
+                    <Text style={[styles.title, { color: palette.text }]}>Selecciona modo</Text>
+                    <Text style={[styles.subtitle, { color: palette.textMuted }]}>Configura dificultad o crea tu propia partida</Text>
+
+                    <ProfileButtonRow onPress={goToProfile} palette={palette} />
+                    <PresetGroup onApplyPreset={applyPreset} palette={palette} />
+                    <FieldRow label="Bombas" value={bombs} onChange={setBombs} palette={palette} />
+                    <FieldRow label="Filas" value={rows} onChange={setRows} palette={palette} />
+                    <FieldRow label="Columnas" value={columns} onChange={setColumns} palette={palette} />
+                    <StartButtonRow onPress={startGame} palette={palette} />
+                </SurfaceCard>
+            </ScrollView>
+
+            <ActionModal
+                visible={showNewGameConfirmModal}
+                title="Comenzar nueva partida"
+                subtitle="Hay una partida en curso. Si continuas con estos ajustes, empezaras una nueva partida."
+                primaryLabel="Continuar"
+                onPrimaryPress={async () => {
+                    if (!pendingSettings) return;
+                    await saveGameSettings(pendingSettings);
+                    setShowNewGameConfirmModal(false);
+                    setPendingSettings(null);
+                    navigateToView(Views.Game);
+                }}
+                secondaryLabel="Cancelar"
+                onSecondaryPress={() => {
+                    setShowNewGameConfirmModal(false);
+                    setPendingSettings(null);
+                }}
+                primaryVariant="danger"
+            />
+        </LinearGradient>
     );
 }
 
-function ProfileButtonRow({ onPress }: { onPress: () => void }) {
+function ProfileButtonRow({ onPress, palette }: { onPress: () => void; palette: typeof Colors.light }) {
     return (
-        <View style={styles.profileButton}>
-            <Button title="Seleccionar Perfil" onPress={onPress} />
-        </View>
+        <AppButton label="Seleccionar perfil" onPress={onPress} variant="soft" style={styles.secondaryButton} />
     );
 }
 
 
 const styles = StyleSheet.create({
-    container: {
+    gradient: {
         flex: 1,
-        padding: 20,
-        justifyContent: 'flex-start',
+    },
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        padding: 18,
+        paddingBottom: 96,
+    },
+    card: {
+        borderRadius: 24,
+        shadowRadius: 20,
+        shadowOffset: { width: 0, height: 10 },
     },
     title: {
-        fontSize: 24,
-        marginBottom: 20,
-        textAlign: 'center',
+        fontSize: 30,
+        marginBottom: 6,
+        textAlign: 'left',
+        fontFamily: Fonts?.rounded,
+        fontWeight: '700',
+    },
+    subtitle: {
+        fontSize: 14,
+        marginBottom: 18,
+        fontFamily: Fonts?.sans,
     },
     presets: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 24,
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: 8,
+        marginBottom: 18,
     },
     presetButton: {
-        flex: 1,
-        marginHorizontal: 4,
+        minWidth: 96,
+        borderWidth: 1,
+        borderRadius: 14,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
     },
-    profileButton: {
-        marginBottom: 20,
+    presetButtonText: {
+        fontSize: 14,
+        textAlign: 'center',
+        fontFamily: Fonts?.rounded,
+        fontWeight: '600',
+    },
+    secondaryButton: {
+        marginBottom: 16,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
     },
     field: {
-        marginBottom: 16,
+        marginBottom: 12,
     },
     label: {
         marginBottom: 6,
-        fontSize: 16,
+        fontSize: 13,
+        letterSpacing: 0.3,
+        textTransform: 'uppercase',
+        fontFamily: Fonts?.sans,
+        fontWeight: '600',
     },
     input: {
         borderWidth: 1,
-        borderColor: '#999',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
         fontSize: 16,
+        fontFamily: Fonts?.sans,
     },
-    startButton: {
-        marginTop: 24,
+    primaryButton: {
+        marginTop: 14,
+        paddingVertical: 14,
     },
 });

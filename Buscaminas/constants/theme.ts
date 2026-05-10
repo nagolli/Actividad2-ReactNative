@@ -5,23 +5,39 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#0f766e';
+const tintColorDark = '#34d399';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#13212b',
+    textMuted: '#4f6170',
+    background: '#f4f7f9',
+    backgroundSoft: '#e9eff3',
+    surface: '#ffffff',
+    surfaceAlt: '#f2f6f9',
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    tintSoft: '#dff6f1',
+    border: '#d4dde4',
+    danger: '#d64545',
+    success: '#178f58',
+    icon: '#6a7985',
+    tabIconDefault: '#7a8a97',
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#e6edf3',
+    textMuted: '#9caaba',
+    background: '#0d1318',
+    backgroundSoft: '#121d24',
+    surface: '#15222b',
+    surfaceAlt: '#1b2b36',
     tint: tintColorDark,
-    icon: '#9BA1A6',
+    tintSoft: '#1f3f3a',
+    border: '#233744',
+    danger: '#ff6b6b',
+    success: '#34d399',
+    icon: '#92a0ad',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
   },
@@ -39,13 +55,13 @@ export const Fonts = Platform.select({
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'normal',
+    sans: 'sans-serif',
     serif: 'serif',
-    rounded: 'normal',
+    rounded: 'sans-serif-medium',
     mono: 'monospace',
   },
   web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    sans: "'Avenir Next', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
     rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",

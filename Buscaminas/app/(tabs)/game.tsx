@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useEffect, useState } from 'react';
 
 import { getGameSettings } from '@/db/database';
 import { UnmountOnBlur } from '@/hooks/unmountOnBlur';
@@ -12,16 +13,24 @@ import Loading from '../views/loading';
 export default function GameScreen() {
     const [gameSettings, setGameSettings] = useState<{ bombs: number; columns: number; rows: number } | undefined>(undefined);
 
+    const loadSettings = useCallback(() => {
+        const settings = getGameSettings();
+        if (settings) setGameSettings(settings);
+    }, []);
+
     /**
      * Carga la configuración del juego desde la base de datos al montar el componente.
      */
     useEffect(() => {
-        const loadSettings = async () => {
-            const settings = getGameSettings();
-            if (settings) setGameSettings(settings);
-        };
         loadSettings();
-    }, []);
+    }, [loadSettings]);
+
+    // Asegura que al volver desde Ajustes se use siempre la configuración más reciente.
+    useFocusEffect(
+        useCallback(() => {
+            loadSettings();
+        }, [loadSettings])
+    );
 
     if (!gameSettings) {
         return <Loading />;

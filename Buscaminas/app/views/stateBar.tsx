@@ -1,8 +1,8 @@
-import { Colors } from '@/constants/theme';
+import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useChrono } from '@/hooks/useChrono';
 import React from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 /**
  * Props para el componente StateBar que muestra el estado del juego.
@@ -16,6 +16,8 @@ export interface StateBarProps {
     bombsLeft: number;
     endTime: Date | null;
     onEndGame: (won: boolean) => void;
+    onRequestSurrender?: () => void;
+    onRestart?: () => void;
 }
 
 /**
@@ -27,14 +29,15 @@ export interface StateBarProps {
  * @param bombsLeft - Número de bombas que aún no han sido marcadas
  * @param onEndGame - Función callback que recibe si el jugador ganó o perdió
  */
-export default function StateBar({ initTime, endTime, bombsLeft, onEndGame }: StateBarProps) {
+export default function StateBar({ initTime, endTime, bombsLeft, onEndGame, onRequestSurrender, onRestart }: StateBarProps) {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme ?? 'light'];
+    const isEnded = endTime !== null;
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.background, borderColor: theme.icon }]}>
+        <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <BombsLeft bombsLeft={bombsLeft} theme={theme} />
-            <EndGame onEndGame={onEndGame} theme={theme} />
+            <EndGame onEndGame={onEndGame} onRequestSurrender={onRequestSurrender} onRestart={onRestart} isEnded={isEnded} theme={theme} />
             <TimeCounter initTime={initTime} endTime={endTime} theme={theme} />
         </View>
     );
@@ -45,14 +48,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 12,
-        margin: 12,
-        borderRadius: 16,
+        padding: 14,
+        marginHorizontal: 12,
+        marginTop: 12,
+        marginBottom: 10,
+        borderRadius: 18,
         borderWidth: 1,
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 4 },
+        shadowColor: '#091018',
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 6 },
         elevation: 3,
     },
     item: {
@@ -61,13 +66,28 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
     },
     label: {
-        fontSize: 12,
+        fontSize: 11,
         marginBottom: 4,
         textTransform: 'uppercase',
+        letterSpacing: 0.45,
+        fontFamily: Fonts?.sans,
+        fontWeight: '600',
     },
     value: {
         fontSize: 18,
         fontWeight: '700',
+        fontFamily: Fonts?.rounded,
+    },
+    dangerButton: {
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+    },
+    dangerButtonText: {
+        color: '#ffffff',
+        fontSize: 12,
+        fontWeight: '700',
+        fontFamily: Fonts?.rounded,
     },
 });
 
@@ -78,7 +98,7 @@ const styles = StyleSheet.create({
  * @param endTime - Fecha de finalización del juego.
  */
 const TimeCounter = ({ initTime, endTime, theme }: { initTime: Date, endTime: Date | null, theme: any }) => {
-    useChrono(1);
+    useChrono(1, !endTime);
     return <View style={styles.item}>
         <Text style={[styles.label, { color: theme.icon }]}>Tiempo</Text>
         <Text style={[styles.value, { color: theme.text }]}>
@@ -103,9 +123,29 @@ const BombsLeft = ({ bombsLeft, theme }: { bombsLeft: number; theme: any }) => {
  * Componente que proporciona un botón para terminar el juego manualmente.
  * @param onEndGame - Función callback para manejar el fin del juego con resultado de derrota.
  */
-const EndGame = ({ onEndGame, theme }: { onEndGame: (won: boolean) => void; theme: any }) => {
+const EndGame = ({ onEndGame, onRequestSurrender, onRestart, isEnded, theme }: {
+    onEndGame: (won: boolean) => void;
+    onRequestSurrender?: () => void;
+    onRestart?: () => void;
+    isEnded: boolean;
+    theme: any;
+}) => {
     return <View style={styles.item}>
         <Text style={[styles.label, { color: theme.icon }]}>Juego</Text>
-        <Button title="Rendirse" onPress={() => onEndGame(false)} />
+        <Pressable
+            style={[styles.dangerButton, { backgroundColor: isEnded ? theme.tint : theme.danger }]}
+            onPress={() => {
+                if (isEnded) {
+                    onRestart?.();
+                    return;
+                }
+                if (onRequestSurrender) {
+                    onRequestSurrender();
+                    return;
+                }
+                onEndGame(false);
+            }}>
+            <Text style={styles.dangerButtonText}>{isEnded ? 'Reiniciar' : 'Rendirse'}</Text>
+        </Pressable>
     </View>
 }

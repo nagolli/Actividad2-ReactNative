@@ -9,6 +9,10 @@ type GameSettings = {
   rows: number;
 };
 
+type RuntimeState = {
+  game_in_progress: number;
+};
+
 export interface Profile {
   id: number;
   name: string;
@@ -68,6 +72,18 @@ const ensureSchema = () => {
         time INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE
       );`
+    );
+
+    db.execSync(
+      `CREATE TABLE IF NOT EXISTS runtime_state (
+        id INTEGER PRIMARY KEY NOT NULL,
+        game_in_progress INTEGER NOT NULL DEFAULT 0
+      );`
+    );
+
+    db.execSync(
+      `INSERT OR IGNORE INTO runtime_state (id, game_in_progress)
+       VALUES (1, 0);`
     );
   });
 
@@ -206,4 +222,28 @@ export const initDatabase = () => {
       }
     });
   }
+};
+
+export const isGameInProgress = (): boolean => {
+  ensureSchema();
+  const state = db.getFirstSync<RuntimeState>('SELECT game_in_progress FROM runtime_state WHERE id = 1;');
+  return (state?.game_in_progress ?? 0) === 1;
+};
+
+export const setGameInProgress = (inProgress: boolean) => {
+  return new Promise<void>((resolve, reject) => {
+    try {
+      ensureSchema();
+      db.withTransactionSync(() => {
+        db.execSync(
+          `INSERT OR REPLACE INTO runtime_state (id, game_in_progress)
+           VALUES (1, ${inProgress ? 1 : 0});`
+        );
+      });
+      resolve();
+    } catch (error) {
+      console.log('Error al actualizar estado de partida en curso:', error);
+      reject(error);
+    }
+  });
 };

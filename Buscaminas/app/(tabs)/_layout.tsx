@@ -1,32 +1,13 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { router, Tabs } from 'expo-router';
+import React, { useState } from 'react';
+import { StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
+import ActionModal from '@/components/ui/action-modal';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
+import { isGameInProgress, setGameInProgress } from '@/db/database';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { navigateToView, Views } from '@/utils/viewsEnum';
-
-/**
- * Componente reutilizable que renderiza un botón de pestaña personalizado.
- * Proporciona feedback táctil al presionar y muestra un ícono con color dinámico.
- * 
- * @param icon - Nombre del ícono a mostrar (debe ser un nombre válido de IconSymbol)
- * @param label - Etiqueta descriptiva del botón (accesibilidad)
- * @param onPress - Función callback que se ejecuta al presionar el botón
- * @param color - Color del ícono
- */
-const TabButton = ({ icon, label, onPress, color }: { icon: string; label: string; onPress: () => void; color: string }) => {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={styles.tabButton}
-    >
-      <IconSymbol size={28} name={icon as any} color={color} />
-    </Pressable>
-  );
-};
 
 /**
  * Layout de navegación por pestañas (Tabs) de la aplicación.
@@ -37,76 +18,94 @@ const TabButton = ({ icon, label, onPress, color }: { icon: string; label: strin
  */
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const tintColor = Colors[colorScheme ?? 'light'].tint;
+  const palette = Colors[colorScheme ?? 'light'];
+  const [showInProgressModal, setShowInProgressModal] = useState(false);
 
   return (
-    <Tabs
-      initialRouteName="init"
-      screenOptions={{
-        tabBarActiveTintColor: tintColor,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="init"
-        options={{
-          title: 'Inicio',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="wrench.fill" color={color} />,
-          tabBarButton: (props) => (
-            <TabButton
-              icon="wrench.fill"
-              label="Inicio"
-              onPress={() => {
-                navigateToView(Views.Init);
+    <>
+      <Tabs
+        initialRouteName="init"
+        screenOptions={{
+          tabBarActiveTintColor: palette.tabIconSelected,
+          tabBarInactiveTintColor: palette.tabIconDefault,
+          headerShown: false,
+          tabBarButton: HapticTab,
+          tabBarStyle: {
+            height: 74,
+            borderTopWidth: 0,
+            backgroundColor: palette.surface,
+            marginHorizontal: 12,
+            marginBottom: 12,
+            borderRadius: 22,
+            paddingTop: 8,
+            paddingBottom: 8,
+            position: 'absolute',
+            ...styles.shadow,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '600',
+          },
+        }}>
+        <Tabs.Screen
+          name="init"
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              const state = navigation.getState();
+              const currentRouteName = state.routes[state.index]?.name;
+              if (currentRouteName === 'init') return;
+
+              if (isGameInProgress()) {
+                e.preventDefault();
+                setShowInProgressModal(true);
               }
-              }
-              color={tintColor}
-            />
-          ),
+            },
+          })}
+          options={{
+            title: 'Ajustes',
+            tabBarIcon: ({ color }) => <IconSymbol size={22} name="wrench.fill" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="game"
+          options={{
+            title: 'Juego',
+            tabBarIcon: ({ color }) => <IconSymbol size={22} name="play.fill" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Perfil',
+            tabBarIcon: ({ color }) => <IconSymbol size={22} name="person.fill" color={color} />,
+          }}
+        />
+      </Tabs>
+
+      <ActionModal
+        visible={showInProgressModal}
+        title="Partida en curso"
+        subtitle="Si vas a Ajustes, se cerrara la partida actual y comenzaras una nueva configuracion."
+        primaryLabel="Continuar"
+        onPrimaryPress={async () => {
+          await setGameInProgress(false);
+          setShowInProgressModal(false);
+          router.navigate('/(tabs)/init');
         }}
+        secondaryLabel="Cancelar"
+        onSecondaryPress={() => setShowInProgressModal(false)}
+        primaryVariant="danger"
       />
-      <Tabs.Screen
-        name="game"
-        options={{
-          title: 'Juego',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="play.fill" color={color} />,
-          tabBarButton: (props) => (
-            <TabButton
-              icon="play.fill"
-              label="Juego"
-              onPress={() => {
-                navigateToView(Views.Game);
-              }}
-              color={tintColor}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Perfil',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
-          tabBarButton: (props) => (
-            <TabButton
-              icon="person.fill"
-              label="Perfil"
-              onPress={() => {
-                navigateToView(Views.Profile);
-              }}
-              color={tintColor}
-            />
-          ),
-        }}
-      />
-    </Tabs>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  tabButton: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  shadow: {
+    shadowColor: '#0a1118',
+    shadowOpacity: 0.15,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 4,
   },
 });
