@@ -85,7 +85,7 @@ export default function TabLayout() {
       <ActionModal
         visible={showInProgressModal}
         title="Partida en curso"
-        subtitle="Si vas a Ajustes, se cerrara la partida actual y comenzaras una nueva configuracion."
+        subtitle="Si vas a Ajustes, se cerrará la partida actual y comenzarás una nueva configuración."
         primaryLabel="Continuar"
         onPrimaryPress={async () => {
           await setGameInProgress(false);
