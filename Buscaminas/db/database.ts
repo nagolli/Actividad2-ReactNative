@@ -31,13 +31,6 @@ export interface GameRecord {
   time: number;
 }
 
-const normalizeRows = <T>(result: any): T[] => {
-  if (!result || result.length === 0) return [];
-  const rows = result[0].rows;
-  if (!rows) return [];
-  return Array.isArray(rows._array) ? (rows._array as T[]) : (rows as T[]);
-};
-
 const ensureSchema = () => {
   if (schemaInitialized) return;
 
@@ -115,9 +108,7 @@ export const saveGameSettings = (settings: GameSettings) => {
 
 export const getAllProfiles = (): Profile[] => {
   ensureSchema();
-  return normalizeRows<Profile>(
-    db.execSync('SELECT id, name, created_at, activo FROM profiles ORDER BY name ASC;')
-  );
+  return db.getAllSync<Profile>('SELECT id, name, created_at, activo FROM profiles ORDER BY name ASC;');
 };
 
 export const getActiveProfile = (): Profile | null => {
@@ -152,6 +143,9 @@ export const insertProfile = (profileName: string, active = false) => {
       ensureSchema();
       db.withTransactionSync(() => {
         const safeProfileName = profileName.replace(/'/g, "''");
+        if (active) {
+          db.execSync('UPDATE profiles SET activo = 0;');
+        }
         db.execSync(
           `INSERT INTO profiles (name, activo) VALUES ('${safeProfileName}', ${active ? 1 : 0});`
         );
@@ -164,15 +158,41 @@ export const insertProfile = (profileName: string, active = false) => {
   });
 };
 
+export const deleteProfile = (profileId: number) => {
+  return new Promise<void>((resolve, reject) => {
+    try {
+      ensureSchema();
+      db.withTransactionSync(() => {
+        db.execSync(`DELETE FROM profiles WHERE id = ${profileId};`);
+
+        const activeProfile = db.getFirstSync<{ id: number }>(
+          'SELECT id FROM profiles WHERE activo = 1 LIMIT 1;'
+        );
+
+        if (!activeProfile) {
+          const firstProfile = db.getFirstSync<{ id: number }>(
+            'SELECT id FROM profiles ORDER BY id ASC LIMIT 1;'
+          );
+          if (firstProfile) {
+            db.execSync(`UPDATE profiles SET activo = 1 WHERE id = ${firstProfile.id};`);
+          }
+        }
+      });
+      resolve();
+    } catch (error) {
+      console.log('Error al eliminar perfil:', error);
+      reject(error);
+    }
+  });
+};
+
 export const getGamesByProfile = (profileId: number): GameRecord[] => {
   ensureSchema();
-  return normalizeRows<GameRecord>(
-    db.execSync(
-      `SELECT id, profile_id, bombs, columns, rows, result, played_at, time
-       FROM games
-       WHERE profile_id = ${profileId}
-       ORDER BY played_at DESC;`
-    )
+  return db.getAllSync<GameRecord>(
+    `SELECT id, profile_id, bombs, columns, rows, result, played_at, time
+     FROM games
+     WHERE profile_id = ${profileId}
+     ORDER BY played_at DESC;`
   );
 };
 
